@@ -27,6 +27,7 @@ kind-up:
 		--image kindest/node:v1.23.0 \
 		--name $(KIND_CLUSTER) \
 		--config zarf/k8s/kind/kind-config.yaml
+	kubectl config set-context --current --namespace=service-system
 
 kind-down:
 	kind delete cluster --name $(KIND_CLUSTER)
@@ -43,7 +44,7 @@ kind-status:
 	kubectl get pods -o wide --watch --all-namespaces
 
 kind-status-service:
-	kubectl get pods -o wide --watch --namespace=service-system
+	kubectl get pods -o wide --watch
 
 kind-logs:
 	kubectl logs -l app=service --all-containers=true -f --tail=100
@@ -54,6 +55,4 @@ kind-restart:
 kind-update: all kind-load kind-restart
 
 kind-describe:
-	kubectl describe nodes
-	kubectl describe svc
 	kubectl describe pod -l app=service
