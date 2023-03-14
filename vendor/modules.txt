@@ -1,3 +1,6 @@
+# github.com/ardanlabs/conf/v2 v2.2.0
+## explicit; go 1.13
+github.com/ardanlabs/conf/v2
 # go.uber.org/atomic v1.7.0
 ## explicit; go 1.13
 go.uber.org/atomic
