@@ -10,6 +10,7 @@ import (
 
 	"github.com/wolftsao/service/app/services/sales-api/handlers/debug/checkgrp"
 	"github.com/wolftsao/service/app/services/sales-api/handlers/v1/testgrp"
+	"github.com/wolftsao/service/business/web/mid"
 	"github.com/wolftsao/service/foundation/web"
 	"go.uber.org/zap"
 )
@@ -62,6 +63,7 @@ func APIMux(cfg APIMuxConfig) *web.App {
 	// Construct the web.App which holds all routes as well as common Middleware.
 	app := web.NewApp(
 		cfg.Shutdown,
+		mid.Logger(cfg.Log),
 	)
 
 	// Load the routes for the different versions of the API.
