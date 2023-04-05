@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -71,13 +72,13 @@ func genToken() error {
 	token := jwt.NewWithClaims(method, claims)
 	token.Header["kid"] = "54bb2165-71e1-41a6-af3e-7da4a0e1e2c1"
 
-	str, err := token.SignedString(privateKey)
+	tokenStr, err := token.SignedString(privateKey)
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("======= TOKEN BEGIN =======")
-	fmt.Println(str)
+	fmt.Println(tokenStr)
 	fmt.Println("======= TOKEN END =======")
 	fmt.Print("\n")
 
@@ -99,11 +100,51 @@ func genToken() error {
 		return fmt.Errorf("encoding to public file: %w", err)
 	}
 
+	// ==================================================================
+
+	fmt.Println("===================")
+
+	// Create the token parser to use. The algorithm used to sign the JWT must be
+	// validated to avoid a critical vulnerability:
+	// https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/
+	parser := jwt.Parser{
+		ValidMethods: []string{"RS256"},
+	}
+
+	var parsedClaims struct {
+		jwt.StandardClaims
+		Roles []string
+	}
+
+	keyFunc := func(t *jwt.Token) (interface{}, error) {
+		kid, ok := t.Header["kid"]
+		if !ok {
+			return nil, errors.New("missing key id (kid) in token header")
+		}
+		kidID, ok := kid.(string)
+		if !ok {
+			return nil, errors.New("user token key id (kid) must be string")
+		}
+		fmt.Println("KID:", kidID)
+		return &privateKey.PublicKey, nil
+	}
+
+	parsedtoken, err := parser.ParseWithClaims(tokenStr, &parsedClaims, keyFunc)
+	if err != nil {
+		return fmt.Errorf("parsing token: %w", err)
+	}
+
+	if !parsedtoken.Valid {
+		return errors.New("invalid token")
+	}
+
+	fmt.Println("Token Validated")
+
 	return nil
 }
 
-// GenKey creates an x509 private/public key for auth tokens.
-func GenKey() error {
+// genKey creates an x509 private/public key for auth tokens.
+func genKey() error {
 	// Generate a new private key.
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
