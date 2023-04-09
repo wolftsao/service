@@ -10,6 +10,9 @@ SHELL := /bin/bash
 # openssl genpkey -algorithm RSA -out private.pem -pkeyopt rsa_keygen_bits:2048
 # openssl rsa -pubout -in private.pem -out public.pem
 
+# Testing auth
+# curl -il http://localhost:3000/v1/testauth
+# curl -il -H "Authorization: Bearer ${TOKEN}" http://localhost:3000/v1/testauth
 # =============================================================
 
 run:
